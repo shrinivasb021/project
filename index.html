@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wearable Health Monitoring</title>
+  <meta name="description" content="Real‑time wearable health monitoring dashboard with animated UI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b1020;             /* dark */
+      --panel: #11172e;
+      --soft: #1a2142;
+      --muted: #94a3b8;
+      --txt: #e6eefc;
+      --brand: #6ee7b7;          /* mint */
+      --danger: #fb7185;         /* rose */
+      --warn: #fbbf24;           /* amber */
+      --ok: #34d399;             /* emerald */
+      --card-glow: 0 10px 30px rgba(110,231,183,.15);
+      --radius-xl: 18px;
+      --radius-2xl: 26px;
+    }
+    .light{
+      --bg:#f6f8ff; --panel:#ffffff; --soft:#eef2ff; --muted:#475569; --txt:#0b1020; 
+      --card-glow: 0 16px 40px rgba(30,64,175,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; 
+      background: radial-gradient(1200px 600px at 70% -10%, #233 0, transparent 60%),
+                  radial-gradient(900px 500px at 0% 0%, #1a2248 0, transparent 60%),
+                  var(--bg);
+      color:var(--txt);
+      overflow-x:hidden;
+    }
+    .app{display:grid; grid-template-columns: 260px 1fr; min-height:100vh}
+    aside{
+      position:sticky; top:0; height:100svh; padding:28px 18px; 
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0) 24%), var(--panel);
+      border-right:1px solid rgba(255,255,255,.06);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.2px; font-size:20px; margin-bottom:18px;
+    }
+    .logo{ width:36px; height:36px; border-radius:12px; display:grid; place-items:center; 
+      background: conic-gradient(from 180deg, var(--brand), #60a5fa 120deg, #a78bfa 220deg, var(--brand) 360deg);
+      box-shadow: 0 8px 24px rgba(79,70,229,.35);
+      color:#001b1b; font-weight:900;
+    }
+    nav{display:grid; gap:8px; margin:16px 0 24px}
+    .nav-btn{
+      display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px; 
+      background:transparent; border:1px solid transparent; color:var(--txt); cursor:pointer; 
+      transition:.2s transform, .2s background, .2s box-shadow;
+    }
+    .nav-btn:hover{background:var(--soft); transform:translateY(-1px)}
+    .nav-btn.active{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0)); border-color:rgba(255,255,255,.08); box-shadow:var(--card-glow)}
+
+    .aside-card{margin-top:auto; padding:14px; border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0)); border:1px solid rgba(255,255,255,.06)}
+    .aside-row{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; color:var(--muted)}
+
+    header{
+      position:sticky; top:0; z-index:5; backdrop-filter: blur(8px);
+      background:linear-gradient(180deg, rgba(15,19,40,.65), rgba(15,19,40,0));
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .toolbar{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 22px }
+    .toolbar .group{display:flex; align-items:center; gap:10px}
+    .search{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:var(--panel); border:1px solid rgba(255,255,255,.06); min-width:280px}
+    .search input{border:none; outline:none; flex:1; background:transparent; color:var(--txt)}
+    .chip{font-size:12px; color:var(--muted); padding:6px 10px; border:1px dashed rgba(255,255,255,.18); border-radius:999px}
+    .toggle{padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:var(--panel); cursor:pointer}
+
+    main{ padding:22px; display:grid; gap:22px }
+
+    /* GRID */
+    .grid{ display:grid; gap:22px }
+    .grid.cols-3{ grid-template-columns: repeat(3, minmax(0,1fr))}
+    .grid.cols-2{ grid-template-columns: repeat(2, minmax(0,1fr))}
+    @media (max-width:1200px){ .app{grid-template-columns: 84px 1fr} aside .label{display:none} .grid.cols-3{grid-template-columns: 1fr} }
+    @media (max-width:900px){ .grid.cols-2{grid-template-columns: 1fr} }
+
+    /* CARDS */
+    .card{ background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0));
+           border:1px solid rgba(255,255,255,.08); border-radius: var(--radius-xl);
+           padding:18px; box-shadow: var(--card-glow); position:relative; overflow:hidden }
+    .card h3{ margin:0 0 8px; font-size:14px; letter-spacing:.3px; color:var(--muted) }
+    .value{ font-size:34px; font-weight:800; letter-spacing:-.5px }
+    .unit{ font-size:14px; color:var(--muted); margin-left:6px }
+    .status{ font-size:12px; color:var(--muted) }
+    .trend{ position:absolute; inset:auto 8px 8px auto; font-size:12px; color:var(--muted) }
+
+    /* RING GAUGES */
+    .rings{ display:grid; grid-template-columns: repeat(6, 1fr); gap:18px }
+    @media (max-width:1200px){ .rings{ grid-template-columns: repeat(3, 1fr) } }
+    @media (max-width:700px){ .rings{ grid-template-columns: repeat(2, 1fr) } }
+
+    .ring{ display:grid; place-items:center; gap:8px }
+    .ring .meter{ width:120px; height:120px; border-radius:999px; display:grid; place-items:center; position:relative; }
+    .ring .meter::before{ content:""; position:absolute; inset:8px; border-radius:inherit; background:var(--panel); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06) }
+    .ring .label{ font-size:12px; color:var(--muted) }
+
+    /* BADGE */
+    .badge{ display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)); font-size:13px }
+
+    /* TABLE */
+    table{ width:100%; border-collapse:collapse; font-size:14px }
+    th,td{ text-align:left; padding:12px 10px; border-bottom:1px dashed rgba(255,255,255,.08) }
+    th{ color:var(--muted); font-weight:600 }
+    tr:hover td{ background:rgba(255,255,255,.02) }
+
+    /* ALERTS */
+    .pill{ padding:6px 10px; border-radius:999px; font-size:12px; font-weight:600 }
+    .pill.ok{ background:rgba(16,185,129,.15); color:#10b981 }
+    .pill.warn{ background:rgba(251,191,36,.15); color:#f59e0b }
+    .pill.danger{ background:rgba(244,63,94,.15); color:#f43f5e }
+
+    /* FLOATERS */
+    .float{
+      position:absolute; inset:auto -40px -40px auto; width:200px; height:200px; border-radius:28px; 
+      background:radial-gradient(closest-side, rgba(110,231,183,.25), transparent 80%);
+      filter: blur(6px);
+      transform: rotate(8deg);
+    }
+
+    /* MOTION */
+    @keyframes pulseGlow{ 0%{ box-shadow: 0 0 0 0 rgba(110,231,183,.25)} 100%{ box-shadow: 0 0 0 22px rgba(110,231,183,0)} }
+    .live{ width:10px; height:10px; border-radius:999px; background:var(--ok); animation: pulseGlow 1.8s infinite; display:inline-block }
+
+    .footer{ color:var(--muted); font-size:12px; text-align:center; padding:16px 0 40px }
+    a{ color:#93c5fd; text-decoration:none }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <aside>
+      <div class="brand">
+        <div class="logo">❤</div>
+        <div class="label">Wearable Health</div>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-target="#dashboard">📊 <span class="label">Dashboard</span></button>
+        <button class="nav-btn" data-target="#devices">⌚ <span class="label">Devices</span></button>
+        <button class="nav-btn" data-target="#trends">📈 <span class="label">Trends</span></button>
+        <button class="nav-btn" data-target="#alerts">🚨 <span class="label">Alerts</span></button>
+        <button class="nav-btn" data-target="#settings">⚙️ <span class="label">Settings</span></button>
+      </nav>
+      <div class="aside-card">
+        <div class="aside-row"><span>Live status</span> <span class="live"></span></div>
+        <div class="aside-row" style="margin-top:8px"><span>Last sync</span> <strong id="lastSync">—</strong></div>
+      </div>
+    </aside>
+
+    <section>
+      <header>
+        <div class="toolbar">
+          <div class="group">
+            <div class="badge">Realtime Demo • <span id="clock" style="margin-left:6px">--:--:--</span></div>
+          </div>
+          <div class="group">
+            <div class="search">
+              🔎 <input placeholder="Search patient, device, or metric…"/>
+            </div>
+            <button class="toggle" id="themeToggle" title="Toggle theme">🌗</button>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="view">
+          <div class="grid cols-3">
+            <div class="card" style="min-height:160px">
+              <h3>Heart Rate</h3>
+              <div class="value"><span id="hrVal">--</span><span class="unit">bpm</span></div>
+              <div class="status" id="hrStatus">—</div>
+              <div class="trend" id="hrTrend">↔︎</div>
+              <div class="float"></div>
+            </div>
+
+            <div class="card" style="min-height:160px">
+              <h3>Blood Oxygen</h3>
+              <div class="value"><span id="spo2Val">--</span><span class="unit">%</span></div>
+              <div class="status" id="spo2Status">—</div>
+              <div class="trend" id="spo2Trend">↔︎</div>
+            </div>
+
+            <div class="card" style="min-height:160px">
+              <h3>Blood Pressure</h3>
+              <div class="value"><span id="bpSys">--</span>/<span id="bpDia">--</span><span class="unit">mmHg</span></div>
+              <div class="status" id="bpStatus">—</div>
+              <div class="trend" id="bpTrend">↔︎</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
+              <h3>Live Rings</h3>
+              <div class="status">Targets • HR 60–100 • SpO₂ ≥ 95% • Temp 36.1–37.2°C</div>
+            </div>
+            <div class="rings">
+              <div class="ring">
+                <div class="meter" id="ring-hr"></div>
+                <div class="label">HR</div>
+              </div>
+              <div class="ring">
+                <div class="meter" id="ring-spo2"></div>
+                <div class="label">SpO₂</div>
+              </div>
+              <div class="ring">
+                <div class="meter" id="ring-temp"></div>
+                <div class="label">Temp</div>
+              </div>
+              <div class="ring">
+                <div class="meter" id="ring-steps"></div>
+                <div class="label">Steps</div>
+              </div>
+              <div class="ring">
+                <div class="meter" id="ring-rr"></div>
+                <div class="label">Resp Rate</div>
+              </div>
+              <div class="ring">
+                <div class="meter" id="ring-hrv"></div>
+                <div class="label">HRV</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>Realtime Signals</h3>
+              <canvas id="lineChart" height="120"></canvas>
+            </div>
+            <div class="card">
+              <h3>Alerts</h3>
+              <table id="alertsTable">
+                <thead>
+                  <tr><th>Time</th><th>Metric</th><th>Value</th><th>State</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEVICES -->
+        <div id="devices" class="view" style="display:none">
+          <div class="grid cols-3" id="deviceGrid"></div>
+        </div>
+
+        <!-- TRENDS -->
+        <div id="trends" class="view" style="display:none">
+          <div class="grid cols-2">
+            <div class="card"><h3>7‑day HR Avg</h3><canvas id="trendHr" height="120"></canvas></div>
+            <div class="card"><h3>7‑day Sleep Duration</h3><canvas id="trendSleep" height="120"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ALERTS PAGE -->
+        <div id="alerts" class="view" style="display:none">
+          <div class="card">
+            <h3>All Alerts</h3>
+            <table id="alertsTableFull">
+              <thead><tr><th>Time</th><th>Metric</th><th>Value</th><th>Details</th><th>State</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="settings" class="view" style="display:none">
+          <div class="card">
+            <h3>Thresholds</h3>
+            <div class="grid cols-3">
+              <div>
+                <label class="status">HR min / max</label>
+                <div style="display:flex; gap:8px; margin-top:6px">
+                  <input id="th-hr-min" type="number" value="55" style="flex:1; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:var(--panel); color:var(--txt)">
+                  <input id="th-hr-max" type="number" value="110" style="flex:1; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:var(--panel); color:var(--txt)">
+                </div>
+              </div>
+              <div>
+                <label class="status">SpO₂ min (%)</label>
+                <div style="display:flex; gap:8px; margin-top:6px">
+                  <input id="th-spo2-min" type="number" value="95" style="flex:1; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:var(--panel); color:var(--txt)">
+                </div>
+              </div>
+              <div>
+                <label class="status">Temp max (°C)</label>
+                <div style="display:flex; gap:8px; margin-top:6px">
+                  <input id="th-temp-max" type="number" value="37.8" step="0.1" style="flex:1; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:var(--panel); color:var(--txt)">
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:14px; display:flex; gap:10px">
+              <button class="toggle" id="saveThresholds">💾 Save</button>
+              <span class="status" id="saveMsg"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Integrations (Demo)</h3>
+            <div class="status">This demo simulates data. Replace <code>simulateTick()</code> with WebSocket, REST, or Bluetooth (Web Bluetooth) data for live devices.</div>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap">
+              <button class="toggle" id="startSim">▶ Start Simulation</button>
+              <button class="toggle" id="stopSim">⏹ Stop Simulation</button>
+              <button class="toggle" id="clearAlerts">🧹 Clear Alerts</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">Built for hackathon demos • Accessible, responsive, and easily deployable static site.</div>
+      </main>
+    </section>
+  </div>
+
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+  // —— UTILITIES ——
+  const $ = (q, root=document) => root.querySelector(q);
+  const $$ = (q, root=document) => Array.from(root.querySelectorAll(q));
+  const fmtTime = d => new Date(d).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+  // —— THEME ——
+  const themeToggle = $('#themeToggle');
+  const themeKey = 'whm-theme';
+  const applyTheme = t => document.body.classList.toggle('light', t === 'light');
+  applyTheme(localStorage.getItem(themeKey) || '');
+  themeToggle.addEventListener('click', () => {
+    const next = document.body.classList.contains('light') ? 'dark' : 'light';
+    applyTheme(next); localStorage.setItem(themeKey, next);
+  });
+
+  // —— NAV ——
+  $$('.nav-btn').forEach(btn=>btn.addEventListener('click', ()=>{
+    $$('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+    $$('.view').forEach(v=>v.style.display='none');
+    const t = btn.getAttribute('data-target'); $(t).style.display='block';
+  }));
+
+  // —— CLOCK ——
+  setInterval(()=>{ $('#clock').textContent = fmtTime(Date.now()); }, 1000);
+
+  // —— RING GAUGES ——
+  function setRing(el, value, min, max, color){
+    const pct = (value-min)/(max-min);
+    const angle = Math.round(360*pct);
+    el.style.background = `conic-gradient(${color} ${angle}deg, rgba(255,255,255,.1) ${angle}deg)`;
+    el.innerHTML = `<div style="position:absolute; font-weight:800;">${Math.round(value)}</div>`;
+  }
+
+  // —— CHARTS ——
+  const lineCtx = $('#lineChart');
+  const lineChart = new Chart(lineCtx, {
+    type:'line', data:{ labels:[], datasets:[
+      {label:'HR', data:[], tension:.35, borderWidth:2},
+      {label:'SpO₂', data:[], tension:.35, borderWidth:2},
+      {label:'Temp', data:[], tension:.35, borderWidth:2}
+    ]}, options:{
+      animation:false, responsive:true, maintainAspectRatio:false,
+      scales:{ y:{ grid:{ color:'rgba(148,163,184,.15)'} }, x:{ ticks:{ display:false }, grid:{ display:false } }},
+      plugins:{ legend:{ labels:{ color:'var(--muted)' } } }
+    }
+  });
+
+  const trendHr = new Chart($('#trendHr'), { type:'bar', data:{ labels:[], datasets:[{label:'bpm', data:[], borderWidth:1}]}, options:{ responsive:true, animation:true }});
+  const trendSleep = new Chart($('#trendSleep'), { type:'bar', data:{ labels:[], datasets:[{label:'hrs', data:[], borderWidth:1}]}, options:{ responsive:true, animation:true }});
+
+  function seedTrends(){
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    trendHr.data.labels = days; trendSleep.data.labels = days;
+    trendHr.data.datasets[0].data = days.map(()=> Math.round(60+Math.random()*30)); trendHr.update();
+    trendSleep.data.datasets[0].data = days.map(()=> (6+Math.random()*2.5).toFixed(1)); trendSleep.update();
+  }
+  seedTrends();
+
+  // —— DEVICES (demo) ——
+  const devices = [
+    {name:'PulseBand X2', type:'Fitness Band', battery:88, status:'Connected'},
+    {name:'Glucose Patch G4', type:'ECG/Glucose Patch', battery:62, status:'Connected'},
+    {name:'SleepRing S', type:'Sleep Ring', battery:41, status:'Disconnected'},
+    {name:'TempClip T1', type:'Thermo Clip', battery:73, status:'Connected'},
+    {name:'BP Cuff Lite', type:'BP Monitor', battery:55, status:'Connected'},
+    {name:'OxiSense Mini', type:'Pulse Oximeter', battery:29, status:'Low Battery'}
+  ];
+  function renderDevices(){
+    const grid = $('#deviceGrid'); grid.innerHTML = '';
+    for(const d of devices){
+      const card = document.createElement('div'); card.className = 'card';
+      card.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+          <div>
+            <div style="font-weight:700">${d.name}</div>
+            <div class="status">${d.type}</div>
+          </div>
+          <div class="pill ${d.battery<30?'warn':''}">${d.battery}%</div>
+        </div>
+        <div style="margin-top:10px" class="status">${d.status}</div>
+      `;
+      grid.appendChild(card);
+    }
+  }
+  renderDevices();
+
+  // —— THRESHOLDS ——
+  const thresholds = {
+    hr:{min:55, max:110}, spo2:{min:95}, temp:{max:37.8}
+  };
+  function loadThresholdInputs(){
+    $('#th-hr-min').value = thresholds.hr.min;
+    $('#th-hr-max').value = thresholds.hr.max;
+    $('#th-spo2-min').value = thresholds.spo2.min;
+    $('#th-temp-max').value = thresholds.temp.max;
+  }
+  loadThresholdInputs();
+  $('#saveThresholds').addEventListener('click', ()=>{
+    thresholds.hr.min = parseFloat($('#th-hr-min').value);
+    thresholds.hr.max = parseFloat($('#th-hr-max').value);
+    thresholds.spo2.min = parseFloat($('#th-spo2-min').value);
+    thresholds.temp.max = parseFloat($('#th-temp-max').value);
+    const msg = $('#saveMsg'); msg.textContent = 'Saved ✓'; setTimeout(()=> msg.textContent='', 1500);
+  });
+
+  // —— ALERTS ——
+  const alertsTbody = $('#alertsTable tbody');
+  const alertsTbodyFull = $('#alertsTableFull tbody');
+  function pushAlert(metric, value, details, state){
+    const time = new Date(); const row = document.createElement('tr');
+    row.innerHTML = `<td>${fmtTime(time)}</td><td>${metric}</td><td>${value}</td><td><span class="pill ${state}">${state.toUpperCase()}</span></td>`;
+    alertsTbody.prepend(row.cloneNode(true));
+    const full = document.createElement('tr');
+    full.innerHTML = `<td>${fmtTime(time)}</td><td>${metric}</td><td>${value}</td><td>${details||''}</td><td><span class="pill ${state}">${state.toUpperCase()}</span></td>`;
+    alertsTbodyFull.prepend(full);
+  }
+  $('#clearAlerts').addEventListener('click', ()=>{ alertsTbody.innerHTML=''; alertsTbodyFull.innerHTML=''; });
+
+  // —— SIMULATION LOOP ——
+  let simTimer = null; let last = { hr:78, spo2:98, temp:36.9, bpSys:118, bpDia:76, steps:3200, rr:15, hrv:55 };
+
+  function simulateTick(){
+    // random walk with gentle inertia
+    const jitter = (val, dd, min, max) => clamp(val + (Math.random()-.5)*dd, min, max);
+    last.hr = Math.round(jitter(last.hr, 6, 45, 150));
+    last.spo2 = Math.round(jitter(last.spo2, 1.2, 85, 100));
+    last.temp = +(jitter(last.temp, .12, 35.5, 39.5)).toFixed(1);
+    last.bpSys = Math.round(jitter(last.bpSys, 3, 90, 165));
+    last.bpDia = Math.round(jitter(last.bpDia, 2, 55, 110));
+    last.steps += Math.random() < .6 ? Math.round(1+Math.random()*4) : 0;
+    last.rr = Math.round(jitter(last.rr, .8, 10, 24));
+    last.hrv = Math.round(jitter(last.hrv, 2, 20, 120));
+
+    // update cards
+    $('#hrVal').textContent = last.hr; $('#spo2Val').textContent = last.spo2;
+    $('#bpSys').textContent = last.bpSys; $('#bpDia').textContent = last.bpDia;
+    $('#bpStatus').textContent = `${stateBp(last.bpSys,last.bpDia).label}`;
+    $('#spo2Status').textContent = stateSpo2(last.spo2).label;
+    $('#hrStatus').textContent = stateHr(last.hr).label;
+
+    // trends/line chart
+    const t = fmtTime(Date.now());
+    if(lineChart.data.labels.length>60){ lineChart.data.labels.shift(); lineChart.data.datasets.forEach(ds=>ds.data.shift()); }
+    lineChart.data.labels.push(t);
+    lineChart.data.datasets[0].data.push(last.hr);
+    lineChart.data.datasets[1].data.push(last.spo2);
+    lineChart.data.datasets[2].data.push(last.temp);
+    lineChart.update();
+
+    // rings
+    setRing($('#ring-hr'), last.hr, 40, 160, '#60a5fa');
+    setRing($('#ring-spo2'), last.spo2, 80, 100, '#34d399');
+    setRing($('#ring-temp'), last.temp, 35, 39.5, '#f59e0b');
+    setRing($('#ring-steps'), last.steps%10000, 0, 10000, '#93c5fd');
+    setRing($('#ring-rr'), last.rr, 8, 28, '#a78bfa');
+    setRing($('#ring-hrv'), last.hrv, 20, 120, '#22d3ee');
+
+    // states and alerts
+    const hrState = stateHr(last.hr); const spo2State = stateSpo2(last.spo2);
+    const tempState = stateTemp(last.temp);
+    $('#hrTrend').textContent = hrState.trend;
+    $('#spo2Trend').textContent = spo2State.trend;
+    $('#bpTrend').textContent = Math.random()>.5 ? '↗' : '↘';
+
+    if(hrState.level!== 'ok') pushAlert('HR', `${last.hr} bpm`, `Target ${thresholds.hr.min}-${thresholds.hr.max}`, hrState.level);
+    if(spo2State.level!== 'ok') pushAlert('SpO₂', `${last.spo2}%`, `Minimum ${thresholds.spo2.min}%`, spo2State.level);
+    if(tempState.level!== 'ok') pushAlert('Temp', `${last.temp}°C`, `Maximum ${thresholds.temp.max}°C`, tempState.level);
+
+    $('#lastSync').textContent = fmtTime(Date.now());
+  }
+
+  function stateHr(v){
+    if(v < thresholds.hr.min) return {level:'warn', label:'Low', trend:'↘'};
+    if(v > thresholds.hr.max) return {level:'danger', label:'High', trend:'↗'};
+    return {level:'ok', label:'Normal', trend:'↔︎'};
+  }
+  function stateSpo2(v){
+    if(v < thresholds.spo2.min-2) return {level:'danger', label:'Low', trend:'↘'};
+    if(v < thresholds.spo2.min) return {level:'warn', label:'Slightly Low', trend:'↘'};
+    return {level:'ok', label:'Normal', trend:'↔︎'};
+  }
+  function stateTemp(v){
+    if(v > thresholds.temp.max+0.8) return {level:'danger', label:'Fever', trend:'↗'};
+    if(v > thresholds.temp.max) return {level:'warn', label:'Elevated', trend:'↗'};
+    return {level:'ok', label:'Normal', trend:'↔︎'};
+  }
+  function stateBp(sys, dia){
+    if(sys>140 || dia>90) return {level:'danger', label:'Stage 2 Hypertension'};
+    if(sys>129 || dia>80) return {level:'warn', label:'Elevated'};
+    if(sys<90 || dia<60) return {level:'warn', label:'Low'};
+    return {level:'ok', label:'Normal'};
+  }
+
+  // controls
+  function start(){ if(simTimer) return; simTimer = setInterval(simulateTick, 1200); }
+  function stop(){ clearInterval(simTimer); simTimer=null; }
+  $('#startSim').addEventListener('click', start);
+  $('#stopSim').addEventListener('click', stop);
+
+  // auto-start simulation
+  start();
+
+  </script>
+</body>
+</html>
