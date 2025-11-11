@@ -1,0 +1,55 @@
+<main>
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="view">
+    <!-- Existing cards -->
+    <div class="grid cols-3">
+      <div class="card" style="min-height:160px">
+        <h3>Heart Rate</h3>
+        <div class="value"><span id="hrVal">--</span><span class="unit">bpm</span></div>
+        <div class="status" id="hrStatus">—</div>
+        <div class="trend" id="hrTrend">↔︎</div>
+        <div class="float"></div>
+      </div>
+
+      <div class="card" style="min-height:160px">
+        <h3>Blood Oxygen</h3>
+        <div class="value"><span id="spo2Val">--</span><span class="unit">%</span></div>
+        <div class="status" id="spo2Status">—</div>
+        <div class="trend" id="spo2Trend">↔︎</div>
+      </div>
+
+      <div class="card" style="min-height:160px">
+        <h3>Blood Pressure</h3>
+        <div class="value"><span id="bpSys">--</span>/<span id="bpDia">--</span><span class="unit">mmHg</span></div>
+        <div class="status" id="bpStatus">—</div>
+        <div class="trend" id="bpTrend">↔︎</div>
+      </div>
+    </div>
+
+    <!-- ✨ NEW: Patient Input Section -->
+    <div class="card">
+      <h3>Manual Input (Simulate Real Data)</h3>
+      <div class="grid cols-3">
+        <input id="inputHR" type="number" placeholder="Heart Rate (bpm)" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:var(--panel);color:var(--txt)">
+        <input id="inputSpO2" type="number" placeholder="Oxygen (%)" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:var(--panel);color:var(--txt)">
+        <input id="inputTemp" type="number" placeholder="Temperature (°C)" step="0.1" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:var(--panel);color:var(--txt)">
+      </div>
+      <div style="margin-top:12px;">
+        <button id="submitVitals" class="toggle">📤 Submit Data</button>
+        <button id="generatePdf" class="toggle">📄 Download Report</button>
+      </div>
+      <p id="summaryText" style="margin-top:12px;color:var(--muted);font-size:14px;">Enter your vitals and click "Submit Data" to generate your summary.</p>
+    </div>
+
+    <!-- ✨ NEW: History Table -->
+    <div class="card">
+      <h3>Recent Entries (Local Storage)</h3>
+      <table id="historyTable">
+        <thead>
+          <tr><th>Time</th><th>HR</th><th>SpO₂</th><th>Temp</th><th>Status</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</main>
